@@ -1,0 +1,15 @@
+query posts($first: Int = 10, $page: Int = 1) {
+  posts(first: $first, page: $page) {
+    data {
+      id
+      slug
+      title
+      truncatedContent
+      created_at
+    }
+    paginatorInfo {
+      currentPage
+      lastPage
+    }
+  }
+}

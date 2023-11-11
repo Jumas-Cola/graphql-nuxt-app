@@ -1,0 +1,79 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/app/Dockerfile
+    restart: unless-stopped
+    tty: true
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+      - ./.env:/var/www/.env
+    networks:
+      - graphql-app-network
+
+  client:
+    build:
+      context: .
+      dockerfile: ./docker/client/Dockerfile
+    restart: unless-stopped
+    tty: true
+    ports:
+      - 3000:3000
+    volumes:
+      - ./client:/usr/src/app/client
+      - ./.env:/usr/src/app/.env
+      - /usr/src/app/node_modules
+      - /usr/src/app/.output
+    networks:
+      - graphql-app-network
+
+  webserver:
+    image: nginx:latest
+    restart: unless-stopped
+    tty: true
+    ports:
+      - 80:80
+    volumes:
+      - ./:/var/www
+      - ./docker/webserver/conf.d/:/etc/nginx/conf.d
+    networks:
+      - graphql-app-network
+
+  db:
+    image: postgres:latest
+    restart: unless-stopped
+    tty: true
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    volumes:
+      - graphql_postgres_data:/var/lib/postgresql/data/
+    networks:
+      - graphql-app-network
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'pg_isready',
+          '-q',
+          '-d',
+          '${DB_DATABASE}',
+          '-U',
+          '${DB_USERNAME}',
+        ]
+      retries: 3
+      timeout: 5s
+
+networks:
+  graphql-app-network:
+    driver: bridge
+
+volumes:
+  graphql_postgres_data:
+    driver: local
