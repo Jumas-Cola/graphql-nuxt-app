@@ -8,6 +8,8 @@ services:
     restart: unless-stopped
     tty: true
     working_dir: /var/www
+    depends_on:
+      - db
     volumes:
       - ./:/var/www
       - ./.env:/var/www/.env
@@ -22,6 +24,8 @@ services:
     tty: true
     ports:
       - 3000:3000
+    depends_on:
+      - app
     volumes:
       - ./client:/usr/src/app/client
       - ./.env:/usr/src/app/.env
@@ -39,6 +43,8 @@ services:
     volumes:
       - ./:/var/www
       - ./docker/webserver/conf.d/:/etc/nginx/conf.d
+    depends_on:
+      - app
     networks:
       - graphql-app-network
 
